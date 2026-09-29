@@ -64,6 +64,12 @@ public class AuthController {
     @GetMapping("/me")
     public AuthDtos.UserResponse me(Authentication authentication) { return auth.me(CurrentUser.id(authentication)); }
 
+    /** 닉네임 변경과 (선택) 비밀번호 변경. */
+    @PutMapping("/me")
+    public AuthDtos.UserResponse updateMe(Authentication authentication, @Valid @RequestBody AuthDtos.AccountUpdateRequest request) {
+        return auth.updateAccount(CurrentUser.id(authentication), request);
+    }
+
     @PostMapping("/logout") @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(@CookieValue(name = RefreshCookies.NAME, required = false) String token,
                        HttpServletRequest request, HttpServletResponse response) {

@@ -28,16 +28,29 @@ public final class AuthDtos {
         @Override public String toString() { return "LoginRequest[redacted]"; }
     }
 
-    public record UserResponse(Long id, String email, String nickname, AuthProvider provider, String profileImageUrl) {
+    public record UserResponse(Long id, String email, String nickname, AuthProvider provider, String profileImageUrl,
+                               boolean hasPassword) {
         public static UserResponse from(UserAccount user) {
             return new UserResponse(user.getId(), user.getEmail(), user.getNickname(), user.getProvider(),
-                user.getProfileImageUrl());
+                user.getProfileImageUrl(),
+                user.getPasswordHash() != null);
         }
     }
 
     /** Access Token은 응답 본문으로, Refresh Token은 HttpOnly 쿠키로만 내려갑니다. */
     public record TokenResponse(String accessToken, String tokenType, long expiresIn, UserResponse user) {
         @Override public String toString() { return "TokenResponse[redacted]"; }
+    }
+
+    /** 닉네임은 항상 저장하고, 비밀번호는 세 칸을 모두 채웠을 때만 바꿉니다. */
+    public record AccountUpdateRequest(
+        @NotBlank(message = "닉네임을 입력해 주세요.")
+        @Size(max = 30, message = "닉네임은 30자 이하여야 합니다.") String nickname,
+        @Size(max = 72) String currentPassword,
+        @Size(max = 72) String newPassword,
+        @Size(max = 72) String newPasswordConfirm
+    ) {
+        @Override public String toString() { return "AccountUpdateRequest[redacted]"; }
     }
 
     public record Providers(boolean google, boolean kakao) { }

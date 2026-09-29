@@ -311,3 +311,27 @@ test('회원가입 검증: 비밀번호 6자 이상과 확인 일치', async ({ 
   await page.getByRole('button', { name: '회원가입', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
 })
+
+test('계정 정보: 닉네임 변경과 비밀번호 변경 후 새 비밀번호로 로그인', async ({ page }) => {
+  const { email, password } = await signup(page)
+  try {
+    await menu(page, '내 설정').click()
+    await page.getByLabel('닉네임', { exact: true }).fill('바뀐 이름')
+    // 현재 비밀번호가 틀리면 저장되지 않습니다.
+    await page.getByLabel('현재 비밀번호', { exact: true }).fill('wrong-password')
+    await page.getByLabel('새 비밀번호 (6자 이상)', { exact: true }).fill('newpass123')
+    await page.getByLabel('새 비밀번호 확인', { exact: true }).fill('newpass123')
+    await page.getByRole('button', { name: '계정 정보 저장', exact: true }).click()
+    await expect(page.getByRole('alert')).toContainText('현재 비밀번호가 일치하지 않')
+    await page.getByLabel('현재 비밀번호', { exact: true }).fill(password)
+    await page.getByRole('button', { name: '계정 정보 저장', exact: true }).click()
+    await expect(page.getByRole('status').filter({ hasText: '계정 정보를 저장했어요' })).toBeVisible()
+    await expect(page.locator('.user-pill')).toContainText('바뀐 이름님')
+    // 새 비밀번호로 다시 로그인됩니다.
+    await page.getByRole('button', { name: '로그아웃', exact: true }).click()
+    await page.getByLabel('이메일', { exact: true }).fill(email)
+    await page.getByLabel('비밀번호', { exact: true }).fill('newpass123')
+    await page.getByRole('button', { name: '로그인', exact: true }).click()
+    await expect(page.locator('.user-pill')).toContainText('바뀐 이름님')
+  } finally { await cleanup(page).catch(() => {}) }
+})

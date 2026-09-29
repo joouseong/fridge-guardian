@@ -83,7 +83,7 @@ export default function App() {
   else if (path === '/ai-recipes') page = <AiRecipePage />
   else if (path === '/chat') page = <ChatPage />
   else if (path === '/shopping') page = <ShoppingPage />
-  else if (path === '/profile') page = <ProfilePage user={session.user} />
+  else if (path === '/profile') page = <ProfilePage user={session.user} onUserChange={(user) => setSession({ loading: false, user, error: null })} />
   else if (['/', '/login', '/signup'].includes(path)) page = <DashboardPage user={session.user} />
   else page = <div className="empty-state"><h1>페이지를 찾을 수 없어요</h1><Link className="button" to="/">대시보드로 돌아가기</Link></div>
   return <div className="app-shell">

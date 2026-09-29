@@ -29,6 +29,8 @@ public class UserAccount {
         this.provider = provider; this.providerId = providerId;
         if (this.profileImageUrl == null) this.profileImageUrl = imageUrl;
     }
+    public void changeNickname(String nickname) { this.nickname = nickname; }
+    public void changePasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Long getId() { return id; }
     public String getEmail() { return email; }
     public String getPasswordHash() { return passwordHash; }

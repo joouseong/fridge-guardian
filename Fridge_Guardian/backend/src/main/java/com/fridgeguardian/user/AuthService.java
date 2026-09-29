@@ -91,6 +91,43 @@ public class AuthService {
             new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "다시 로그인해 주세요.")));
     }
 
+    /** 닉네임을 바꾸고, 새 비밀번호가 있으면 현재 비밀번호를 확인한 뒤 바꿉니다. 소셜 전용 계정은 비밀번호를 바꿀 수 없습니다. */
+    @Transactional
+    public AuthDtos.UserResponse updateAccount(Long userId, AuthDtos.AccountUpdateRequest request) {
+        UserAccount user = users.findById(userId).orElseThrow(() ->
+            new ApiException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "다시 로그인해 주세요."));
+        String nickname = request.nickname().strip();
+        if (nickname.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "닉네임을 입력해 주세요.",
+                Map.of("nickname", "닉네임을 입력해 주세요."));
+        }
+        boolean changePassword = notEmpty(request.currentPassword()) || notEmpty(request.newPassword())
+            || notEmpty(request.newPasswordConfirm());
+        if (changePassword) {
+            if (user.getPasswordHash() == null) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "소셜 로그인 계정은 비밀번호를 변경할 수 없습니다.");
+            }
+            if (!notEmpty(request.currentPassword()) || !passwords.matches(request.currentPassword(), user.getPasswordHash())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "현재 비밀번호가 일치하지 않습니다.",
+                    Map.of("currentPassword", "현재 비밀번호가 일치하지 않습니다."));
+            }
+            String next = request.newPassword() == null ? "" : request.newPassword();
+            if (next.length() < 6 || next.getBytes(StandardCharsets.UTF_8).length > 72) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "새 비밀번호를 확인해 주세요.",
+                    Map.of("newPassword", "새 비밀번호는 6자 이상, UTF-8 72바이트 이하여야 합니다."));
+            }
+            if (!next.equals(request.newPasswordConfirm())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "새 비밀번호 확인이 일치하지 않습니다.",
+                    Map.of("newPasswordConfirm", "새 비밀번호와 확인이 일치하지 않습니다."));
+            }
+            user.changePasswordHash(passwords.encode(next));
+        }
+        user.changeNickname(nickname);
+        return AuthDtos.UserResponse.from(users.saveAndFlush(user));
+    }
+
+    private static boolean notEmpty(String value) { return value != null && !value.isEmpty(); }
+
     /**
      * 소셜 로그인 사용자를 찾거나 만듭니다.
      * 1) (제공자, 제공자 ID)가 같으면 같은 계정입니다.

@@ -23,7 +23,8 @@
 | POST | /auth/login | `{email,password}` → `{accessToken,tokenType:"Bearer",expiresIn:900,user}` + Refresh 쿠키 |
 | POST | /auth/refresh | (쿠키) → 위와 같은 응답 + 새 Refresh 쿠키. 만료·폐기 시 401 |
 | POST | /auth/logout | (쿠키) → 204, 쿠키 삭제·로그인 세션 폐기 |
-| GET | /auth/me | → `{id,email,nickname,provider,profileImageUrl}` |
+| GET | /auth/me | → `{id,email,nickname,provider,profileImageUrl,hasPassword}` |
+| PUT | /auth/me | `{nickname, currentPassword?, newPassword?, newPasswordConfirm?}`. 닉네임은 항상 저장. 비밀번호 세 칸 중 하나라도 있으면 현재 비밀번호 확인 후 변경(소셜 전용 계정은 400) |
 | GET | /auth/providers | → `{google,kakao}` 키가 설정된 소셜 로그인만 true (인증 불필요) |
 | GET | /oauth2/authorization/{google\|kakao} | 제공자 인증 화면으로 302. 등록되지 않은 제공자는 404 |
 | GET | /login/oauth2/code/{id} | 제공자 콜백(브라우저 이동). 성공 → `FRONTEND_URL/oauth/callback`, 실패 → `FRONTEND_URL/login?error=oauth` |
