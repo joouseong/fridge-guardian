@@ -1,0 +1,22 @@
+# 운영체제 및 편집기에서 자동 생성하는 파일
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# 빌드 결과와 설치된 의존성은 소스 관리에서 제외합니다.
+**/target/
+**/node_modules/
+**/dist/
+**/coverage/
+**/test-results/
+**/playwright-report/
+*.log
+.local/
+
+# DB 비밀번호와 API 키를 담을 실제 환경 파일은 커밋하지 않습니다.
+.env
+.env.*
+!.env.example
+!.env.*.example

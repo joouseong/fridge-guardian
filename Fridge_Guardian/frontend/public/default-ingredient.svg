@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="기본 식재료 이미지">
+  <rect width="96" height="96" rx="20" fill="#edf3e8"/>
+  <rect x="26" y="14" width="44" height="68" rx="10" fill="#fffefa" stroke="#294f3e" stroke-width="3"/>
+  <line x1="26" y1="40" x2="70" y2="40" stroke="#294f3e" stroke-width="3"/>
+  <line x1="35" y1="24" x2="35" y2="32" stroke="#294f3e" stroke-width="3" stroke-linecap="round"/>
+  <line x1="35" y1="50" x2="35" y2="66" stroke="#294f3e" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="60" cy="61" r="7" fill="#ab853b" opacity=".9"/>
+  <path d="M60 52c0-4 3-6 6-6-1 4-3 6-6 6z" fill="#5f8f55"/>
+</svg>

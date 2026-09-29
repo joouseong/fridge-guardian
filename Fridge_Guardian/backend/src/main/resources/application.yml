@@ -1,0 +1,99 @@
+spring:
+  application:
+    name: fridge-guardian
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/fridge_guardian?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:fridge_app}
+    password: ${DB_PASSWORD:fridge_dev_password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    # Spring Batch 메타 테이블은 MySQL에서만 Flyway로 만듭니다. (H2 테스트 DB는 Spring Boot가 직접 초기화)
+    locations: classpath:db/migration,classpath:db/vendor/{vendor}
+  batch:
+    job:
+      enabled: false          # 기동 때 자동 실행하지 않고 스케줄러가 시작합니다.
+    jdbc:
+      initialize-schema: embedded
+  cache:
+    # 기본은 프로세스 메모리(Caffeine)입니다. Redis를 쓰려면 CACHE_TYPE=redis 와 REDIS_HOST를 설정합니다.
+    type: ${CACHE_TYPE:caffeine}
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=1h
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  servlet:
+    multipart:
+      max-file-size: 5MB       # PRD: 식재료 이미지는 최대 5MB
+      max-request-size: 6MB
+  security:
+    oauth2:
+      client:
+        registration:
+          # 키가 없으면 'not-configured'로 두어 앱은 기동되지만 해당 소셜 로그인 버튼은 표시되지 않습니다.
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:not-configured}
+            client-secret: ${GOOGLE_CLIENT_SECRET:not-configured}
+            scope: openid,profile,email
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID:not-configured}
+            client-secret: ${KAKAO_CLIENT_SECRET:not-configured}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: profile_nickname,account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+server:
+  # 기본 주소는 http://localhost:8080 입니다.
+  # 다른 포트가 필요하면 실행 터미널의 SERVER_PORT 환경 변수로 바꿀 수 있습니다.
+  port: ${SERVER_PORT:8080}
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  # Vercel rewrite·로드밸런서 뒤에서도 OAuth redirect_uri의 https/host가 올바르게 만들어지도록 합니다.
+  forward-headers-strategy: framework
+app:
+  zone: Asia/Seoul
+  frontend-url: ${FRONTEND_URL:http://127.0.0.1:5173}
+  jwt:
+    # Base64로 인코딩한 32바이트 이상의 비밀 키. 비워 두면 기동마다 임시 키를 만들고(재시작하면 로그인 해제) 경고를 남깁니다.
+    secret: ${JWT_SECRET:}
+    access-ttl: 15m
+    refresh-ttl: 14d
+    cookie-secure: ${COOKIE_SECURE:false}
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+  barcode:
+    # 식품안전나라 OpenAPI(바코드연계제품정보). 키가 없으면 외부 조회 없이 저장된 결과만 사용합니다.
+    api-key: ${FOODSAFETY_API_KEY:}
+    base-url: ${FOODSAFETY_BASE_URL:https://openapi.foodsafetykorea.go.kr}
+  batch:
+    expiry-cron: "0 0 0 * * *"    # 매일 자정(한국 시간)
+    scheduler-enabled: ${SCHEDULER_ENABLED:true}
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-5-mini}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+    timeout-seconds: 45
+    limits:
+      per-user-per-minute: ${AI_USER_REQUESTS_PER_MINUTE:5}
+      per-minute: ${AI_REQUESTS_PER_MINUTE:20}
+      per-day: ${AI_REQUESTS_PER_DAY:100}
+      concurrent: ${AI_CONCURRENT_REQUESTS:2}
+
+# 개인정보를 포함할 수 있는 요청 DTO/SQL의 상세 로그는 기본 실행에서 출력하지 않습니다.
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate: INFO

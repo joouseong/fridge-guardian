@@ -1,0 +1,121 @@
+/* PRD 기능(사진 카드, 일치율, 소셜 로그인, AI 레시피, 장바구니, 알림 등)을 위한 추가 스타일.
+   기본 색상·간격은 global.css의 변수를 그대로 사용합니다. */
+
+/* D-Day 배지 */
+.status-badge .dday { margin-left: 2px; padding-left: 6px; border-left: 1px solid currentColor; font-variant-numeric: tabular-nums; opacity: .85; }
+
+/* 경고 안내(알레르기·비선호 겹침) */
+.warning-box { padding: 13px 16px; border: 1px solid #efc9b8; border-radius: 12px; color: #8f3f28; background: #fdece4; font-size: 12px; font-weight: 600; }
+
+/* 대시보드: 유통기한이 가까운 재료 카드 최대 6개 */
+.ingredient-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.ingredient-card { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 4px 14px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.ingredient-card .ingredient-photo { grid-row: span 2; width: 76px; height: 76px; border-radius: 14px; background: var(--green-soft); object-fit: cover; }
+.ingredient-card-body { min-width: 0; }
+.ingredient-card-body strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ingredient-card > .status-badge { grid-column: 2; justify-self: start; }
+
+/* 목록의 사진 썸네일 */
+.ingredient-thumb { flex-shrink: 0; width: 52px; height: 52px; border: 1px solid #e9ecdf; border-radius: 13px; background: var(--green-soft); object-fit: cover; }
+.ingredient-memo { overflow-wrap: anywhere; }
+
+/* 사진 업로더 · 바코드 스캔 */
+.image-uploader { display: flex; align-items: flex-start; gap: 16px; }
+.image-uploader img { flex-shrink: 0; width: 96px; height: 96px; border: 1px solid var(--border); border-radius: 16px; background: var(--green-soft); object-fit: cover; }
+.image-uploader .button { width: fit-content; }
+.scan-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.scanner-region { width: 100%; min-height: 200px; overflow: hidden; border-radius: 14px; background: #1b3027; }
+.inline-form { display: flex; align-items: flex-end; gap: 10px; }
+.inline-form > .field { flex: 1; }
+textarea { width: 100%; padding: 11px 13px; border: 1px solid #d9dfd0; border-radius: 10px; color: var(--ink); background: #fffefa; resize: vertical; }
+
+/* 레시피 카드: BEST MATCH · 일치율 · 재료 체크 */
+.recipe-card.best { border-color: #c9a45a; box-shadow: 0 8px 26px #ab853b1f; }
+.best-match { width: fit-content; padding: 3px 9px; border-radius: 6px; color: #fffefa; background: #ab853b; font-size: 10px; font-weight: 800; letter-spacing: .8px; }
+.match-rate { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 10px; }
+.match-rate strong { font-size: 22px; letter-spacing: -1px; }
+.match-rate > span { color: var(--muted); font-size: 11px; }
+.match-meter { grid-column: 1 / -1; height: 7px; overflow: hidden; border-radius: 4px; background: #e8eedf; }
+.match-meter > span { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #7ea56a, var(--green)); }
+.ingredient-checklist { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ingredient-checklist li { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; font-size: 11px; }
+.ingredient-checklist .have { color: #43663a; background: #e8f1df; }
+.ingredient-checklist .partial { color: #8a6421; background: #fbf0d9; }
+.ingredient-checklist .lack { color: #8b5a4b; background: #f6ebe6; }
+.badge.soon { color: #9b6c26; background: #fbf0d9; }
+
+/* 부족한 재료 · 쇼핑 링크 */
+.missing-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.missing-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.shop-link { color: #3f6a55; font-size: 12px; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.shop-link:hover { color: var(--green-hover); }
+
+/* 소셜 로그인 */
+.divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 4px; color: var(--muted); font-size: 11px; }
+.divider::before, .divider::after { flex: 1; height: 1px; content: ""; background: var(--border); }
+.social-login { display: flex; flex-direction: column; gap: 10px; }
+.social-button { width: 100%; gap: 10px; font-weight: 700; }
+.social-button.google { border-color: #dadce0; color: #3c4043; background: #fff; }
+.social-button.google:hover:not(:disabled) { background: #f6f8fc; }
+.social-button.kakao { color: #191600; background: #fee500; }
+.social-button.kakao:hover:not(:disabled) { background: #f3da00; }
+.auth-card .social-login > .button { margin-top: 0; }
+.social-button:disabled { cursor: not-allowed; opacity: .55; }
+.social-button small { margin-left: 4px; font-size: 11px; font-weight: 600; opacity: .8; }
+
+/* 알림 종 · 알림함 */
+.bell-button { position: relative; display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); font-size: 18px; }
+.bell-count { position: absolute; top: -6px; right: -6px; min-width: 20px; padding: 1px 5px; border-radius: 10px; color: #fff; background: #c2513b; font-size: 10px; font-weight: 800; line-height: 1.5; text-align: center; }
+.notification-list { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.notification-list li { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #edf0e6; }
+.notification-list li > div { flex: 1; min-width: 0; }
+.notification-list li.read { opacity: .55; }
+
+/* 태그 입력(알레르기·비선호) */
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 12px; border-radius: 20px; color: var(--green); background: #e8eedf; font-size: 12px; font-weight: 650; }
+.tag button { display: grid; width: 22px; height: 22px; place-items: center; border: 0; border-radius: 50%; color: #52674b; background: transparent; }
+.tag button:hover:not(:disabled) { background: #d5e0c9; }
+
+/* AI 레시피 */
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.pick-item { display: flex; flex-direction: column; gap: 2px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 12px; color: var(--ink); background: var(--surface); text-align: left; }
+.pick-item small { color: var(--muted); font-size: 11px; }
+.pick-item.selected { border-color: var(--green); background: #e8eedf; box-shadow: inset 0 0 0 1px var(--green); }
+.ai-ingredients { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ai-ingredients li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #edf0e6; }
+.history-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.history-item { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; color: var(--ink); background: var(--surface); text-align: left; }
+.history-item small { color: var(--muted); font-size: 11px; }
+.favorite.active { color: #9b6c26; border-color: #e5c98c; background: #fbf0d9; }
+
+/* 장바구니 */
+.shopping-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.shopping-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 0; border-bottom: 1px solid #edf0e6; }
+.shopping-list li > .checkbox-field { flex: 1; min-width: 160px; }
+.shopping-list li.checked strong { color: var(--muted); text-decoration: line-through; }
+.shopping-list.done { opacity: .75; }
+
+@media (max-width: 900px) {
+  .ingredient-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+  /* 메뉴가 7개로 늘어도 화면 전체가 넓어지지 않도록 하단 메뉴는 안에서 가로로 스크롤합니다. */
+  /* 줄바꿈이 켜진 세로 flex에서는 항목 폭이 내용 폭이 되어 화면을 넘으므로 줄바꿈을 끕니다. */
+  .sidebar { flex-wrap: nowrap; }
+  .sidebar nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  .sidebar nav::-webkit-scrollbar { display: none; }
+  .nav-link { flex: 0 0 auto; padding: 10px 12px; }
+  .ingredient-card-grid { grid-template-columns: minmax(0, 1fr); }
+  .image-uploader { flex-direction: column; }
+  .inline-form { flex-direction: column; align-items: stretch; }
+  .topbar .bell-button { order: -1; }
+}
+
+/* 넓은 화면(창 최대화): 카드 열 수를 폭에 맞춰 늘려 빈 공간이 생기지 않게 합니다. */
+@media (min-width: 1500px) {
+  .recipe-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+  .ingredient-card-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  .pick-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .chat-layout { grid-template-columns: minmax(0, 1fr) 320px; }
+}

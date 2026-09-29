@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: fridge-gatekeeper
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/fridge_gatekeeper?serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:fridge_app}
+    password: ${DB_PASSWORD:fridge_dev_password}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+server:
+  # 기본 주소는 http://localhost:8080 입니다.
+  # 다른 포트가 필요하면 실행 터미널의 SERVER_PORT 환경 변수로 바꿀 수 있습니다.
+  port: ${SERVER_PORT:8080}
+  address: ${SERVER_ADDRESS:127.0.0.1}
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${SESSION_COOKIE_SECURE:false}
+app:
+  zone: Asia/Seoul
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+    model: ${OPENAI_MODEL:gpt-5-mini}
+    base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+    timeout-seconds: 45
+    limits:
+      per-user-per-minute: ${AI_USER_REQUESTS_PER_MINUTE:5}
+      per-minute: ${AI_REQUESTS_PER_MINUTE:20}
+      per-day: ${AI_REQUESTS_PER_DAY:100}
+      concurrent: ${AI_CONCURRENT_REQUESTS:2}
+
+# 개인정보를 포함할 수 있는 요청 DTO/SQL의 상세 로그는 기본 실행에서 출력하지 않습니다.
+logging:
+  level:
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.hibernate: INFO
