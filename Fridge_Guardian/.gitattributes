@@ -10,3 +10,6 @@
 *.cmd text eol=crlf
 mvnw text eol=lf
 
+*.mjs text eol=lf
+*.ps1 text eol=crlf
+*.gitkeep text

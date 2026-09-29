@@ -1,4 +1,14 @@
+import fs from 'node:fs'
 import { defineConfig } from '@playwright/test'
+
+// 설치된 Chrome을 OS별 기본 위치에서 찾습니다. 다른 곳에 있으면 BROWSER_EXECUTABLE로 지정하세요.
+// (없으면 Playwright 기본 브라우저: `npx playwright install chromium`)
+const chrome = process.env.BROWSER_EXECUTABLE || [
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  '/usr/bin/google-chrome',
+].find((candidate) => fs.existsSync(candidate))
 
 // 백엔드/MySQL/Vite를 먼저 실행합니다. 서버를 자동으로 삭제·재설정하지 않습니다.
 export default defineConfig({
@@ -19,6 +29,6 @@ export default defineConfig({
     viewport: { width: 1440, height: 1000 },
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
-    launchOptions: { executablePath: process.env.BROWSER_EXECUTABLE || undefined },
+    launchOptions: { executablePath: chrome },
   },
 })

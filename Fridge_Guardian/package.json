@@ -1,0 +1,20 @@
+{
+  "name": "fridge-guardian",
+  "private": true,
+  "description": "Windows·macOS 공통 실행 명령 모음 (앱 코드는 backend/, frontend/)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs dev",
+    "db": "node scripts/dev.mjs db",
+    "db:stop": "node scripts/dev.mjs db-stop",
+    "backend": "node scripts/dev.mjs backend",
+    "frontend": "node scripts/dev.mjs frontend",
+    "verify": "node scripts/dev.mjs verify",
+    "test:backend": "node scripts/dev.mjs test-backend",
+    "e2e": "node scripts/dev.mjs e2e",
+    "setup:social": "node scripts/setup-keys.mjs social",
+    "setup:openai": "node scripts/setup-keys.mjs openai"
+  }
+}

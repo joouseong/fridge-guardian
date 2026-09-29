@@ -14,9 +14,9 @@
 
 ## 실행과 검증
 
-- Windows: `scripts/start-db.ps1` → `start-backend.ps1` → `start-frontend.ps1`. PowerShell 예시는 README를 따르세요.
-- 기본 검증: `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1` (H2로 실행, MySQL·서버 불필요)
-- 실서버 검증: `node scripts/smoke-api.mjs`, `e2e`에서 `npx playwright test`(백엔드·Vite·MySQL 실행 필요, `BROWSER_EXECUTABLE`로 Chrome 지정 가능)
+- 공통(Windows·macOS): `npm run dev`(DB+백엔드+프런트), `npm run db:stop`. 개별 실행은 README 참고. 기존 `scripts/*.ps1`은 Windows 전용 대안.
+- 기본 검증: `npm run verify` (H2로 실행, MySQL·서버 불필요)
+- 실서버 검증: `node scripts/smoke-api.mjs`, `npm run e2e`(백엔드·Vite·MySQL 실행 필요, Chrome 자동 탐지, `BROWSER_EXECUTABLE`로 지정 가능)
 - Playwright에서 `<label>` 안에 `select`·`textarea`가 있으면 `getByLabel(exact)`가 옵션·값 텍스트까지 비교해 실패합니다. `getByRole('combobox'|'textbox', { name })`을 쓰세요.
 - 변경 범위에 맞는 검증을 실행하고 결과를 사실대로 기록하세요. 과거 통과 결과를 새 변경의 결과로 대신하지 마세요. 실제 유료 AI 호출(`LIVE_OPENAI=1`)은 명시적으로 요청받았을 때만 실행하세요.
 

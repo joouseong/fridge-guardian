@@ -58,27 +58,33 @@ Fridge_Guardian/
 │  └─ src/  pages/ components/ hooks/ services/api.js lib/ styles/
 ├─ e2e/       Playwright(데스크톱·모바일) 시나리오
 ├─ database/  DB 설계·ERD   docs/  API 계약·설계 문서·발표 자료
-├─ scripts/   Windows 실행·검증 스크립트, HTTP 스모크 테스트
+├─ scripts/   OS 공통 실행 스크립트(dev.mjs), Windows용 .ps1, HTTP 스모크 테스트
+├─ package.json  npm run dev / verify / e2e … 공통 명령
 └─ compose.yaml  MySQL 8.4 (+ 선택 Redis)
 ```
 
-## 실행 (Windows)
+## 실행 (Windows · macOS · Linux 공통)
 
-JDK 21과 Node.js 22.13+ 가 필요합니다. 프로젝트 전용 JDK가 없다면 `scripts/setup-java.ps1`이 공식 Temurin을 `.local/`에 받습니다(시스템 Java는 바꾸지 않음). 터미널마다 프로젝트 루트에서 실행하세요.
+필요한 것: **JDK 21**, **Node.js 22.13+**, **MySQL 8.4**(또는 Docker). 프로젝트 루트에서 실행합니다. 스크립트는 Node로 만들어 OS와 상관없이 같은 명령입니다.
 
-```powershell
-# 1) MySQL — 이 프로젝트 전용 DB를 127.0.0.1:3307에 띄웁니다(기존 MySQL 서비스와 별개, 데이터는 .local/mysql/data)
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-db.ps1
-# 2) 백엔드 (다른 터미널)
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-backend.ps1
-# 3) 프런트엔드 (다른 터미널) → http://127.0.0.1:5173
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-frontend.ps1
+| 설치 | macOS | Windows |
+| --- | --- | --- |
+| JDK 21 | `brew install openjdk@21` | `winget install EclipseAdoptium.Temurin.21.JDK` (또는 `scripts/setup-java.ps1`) |
+| MySQL 8.4 | `brew install mysql@8.4` | MySQL Installer 8.4 (서비스로 등록하지 않아도 돼요) |
+| Node.js | `brew install node` | `winget install OpenJS.NodeJS.LTS` |
+
+```bash
+npm run dev        # DB(3307) + 백엔드(8080) + 프런트(5173)를 한 번에. Ctrl+C로 백엔드·프런트 종료 → http://127.0.0.1:5173
+npm run db:stop    # 프로젝트 MySQL 종료 (데이터 보존)
 ```
 
-- 처음 실행하면 Flyway가 테이블·레시피를 만듭니다. `.env.example`을 `.env`로 복사해 값을 채우면 `start-backend.ps1`이 읽습니다(Maven/JAR 직접 실행은 `.env`를 자동으로 읽지 않으니 환경 변수를 직접 지정하세요).
-- DB 종료: `scripts/stop-local-db.ps1` (데이터는 보존).
-- Docker가 있으면 `docker compose up -d --wait mysql`(+ Redis: `docker compose --profile redis up -d redis`)로도 실행할 수 있습니다.
-- macOS/Linux: `cp .env.example .env` 후 `cd backend && sh ./mvnw spring-boot:run`, `cd frontend && npm ci && npm run dev`.
+개별 실행: `npm run db` / `npm run backend` / `npm run frontend` (각각 다른 터미널). 도움말: `node scripts/dev.mjs help`.
+
+- JDK와 MySQL은 자동으로 찾습니다(`JAVA_HOME`, Homebrew, Program Files 등). 못 찾으면 `JAVA_HOME` 또는 `MYSQL_BIN=<mysql bin 폴더>`를 지정하세요.
+- 프로젝트 DB는 이미 쓰는 MySQL(3306)과 별개인 **3307**을 쓰고, 데이터는 `.local/mysql/data`(Git 제외)에 저장됩니다. **각자 PC의 DB는 서로 공유되지 않아요.**
+- 처음 실행하면 Flyway가 테이블·레시피를 만듭니다. `.env.example`을 `.env`로 복사해 값을 채우면 백엔드 실행 명령이 읽습니다.
+- Docker가 있으면 `docker compose up -d --wait mysql`(3306)로도 DB를 띄울 수 있고, 이때는 `.env`에 `DB_URL`을 지정하세요.
+- 기존 Windows용 `scripts/*.ps1`도 그대로 동작하며 같은 `.local/mysql` 데이터를 씁니다.
 
 ### 소셜 로그인·AI·바코드 켜기 (모두 선택)
 
@@ -86,7 +92,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-frontend.p
 | --- | --- | --- |
 | Google | 콘솔에서 OAuth 클라이언트 생성 → Redirect URI `http://127.0.0.1:5173/login/oauth2/code/google` → `GOOGLE_CLIENT_ID/SECRET` | 로그인 화면에 버튼이 보이지 않음 |
 | Kakao | 카카오 로그인 활성화, Redirect URI `http://127.0.0.1:5173/login/oauth2/code/kakao`, 동의 항목(닉네임·이메일) → `KAKAO_CLIENT_ID/SECRET` | 위와 같음. 이메일 동의가 없으면 이메일 없이 가입됨 |
-| AI | `OPENAI_API_KEY` (`scripts/setup-openai.ps1`로 화면에 표시하지 않고 저장 가능) | AI 레시피는 503 `AI_NOT_CONFIGURED` 안내, 채팅은 기본 추천 |
+| AI | `OPENAI_API_KEY` (`npm run setup:openai`로 화면에 표시하지 않고 저장 가능) | AI 레시피는 503 `AI_NOT_CONFIGURED` 안내, 채팅은 기본 추천 |
 | 바코드 | `FOODSAFETY_API_KEY`(식품안전나라 OpenAPI) | 저장된 결과만 조회, 없으면 직접 입력 안내 |
 | 운영 JWT | `JWT_SECRET`(Base64 32바이트 이상) | 재시작 때마다 임시 키 → 모두 로그아웃 |
 
@@ -94,11 +100,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/start-frontend.p
 
 ## 테스트와 검증
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/verify.ps1   # 백엔드 verify + 프런트 ci·test·lint·build
-# DB·백엔드·프런트엔드를 켠 뒤
-node scripts/smoke-api.mjs                                                  # 실제 MySQL 대상 HTTP 스모크
-cd e2e; npm ci; $env:BROWSER_EXECUTABLE='C:/Program Files/Google/Chrome/Application/chrome.exe'; npx playwright test
+```bash
+npm run verify     # 백엔드 verify(H2, MySQL 불필요) + 프런트 ci·test·lint·build
+# DB·백엔드·프런트엔드를 켠 뒤(npm run dev)
+node scripts/smoke-api.mjs   # 실제 MySQL 대상 HTTP 스모크
+npm run e2e                  # 브라우저 E2E. Chrome은 기본 위치에서 자동 탐지, 다르면 BROWSER_EXECUTABLE 지정
 ```
 
 2026-09-28 이 폴더에서 실제로 실행한 결과입니다.
