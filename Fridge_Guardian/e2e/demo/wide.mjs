@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test'
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' })
 for (const [w, h] of [[1366, 768], [1920, 1080], [2560, 1440]]) {
   const page = await (await browser.newContext({ viewport: { width: w, height: h } })).newPage()
-  await page.goto('http://127.0.0.1:5173/login')
+  await page.goto('http://localhost:3000/login')
   await page.getByLabel('이메일', { exact: true }).fill('demo@example.test')
   await page.getByLabel('비밀번호', { exact: true }).fill('demo1234')
   await page.getByRole('button', { name: '로그인', exact: true }).click()

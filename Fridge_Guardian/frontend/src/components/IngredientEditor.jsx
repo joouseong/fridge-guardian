@@ -16,6 +16,7 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
   const [expanded, setExpanded] = useState(Boolean(ingredient))
   const [scanning, setScanning] = useState(false)
   const [scanMessage, setScanMessage] = useState('')
+  const [productLookup, setProductLookup] = useState(null)
   const [file, setFile] = useState(null)
   const [removeImage, setRemoveImage] = useState(false)
   const [values, setValues] = useState({ name: ingredient?.name || '', category: ingredient?.category || 'OTHER',
@@ -38,11 +39,13 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
   // 스캔한 바코드로 품목명·기본 유통기한을 조회해 입력칸을 채웁니다. 사용자가 그대로 고칠 수 있어요.
   const detected = useCallback(async (code) => {
     setScanning(false)
+    setProductLookup(null)
     setValues(current => ({ ...current, barcode: code }))
     setPickerOpen(false)
     setScanMessage('바코드 정보를 찾고 있어요…')
     try {
       const found = await api(`/barcodes/${code}`)
+      setProductLookup(found)
       setValues(current => ({ ...current, name: found.name, category: found.category || current.category,
         expirationDate: current.expirationDate || found.suggestedExpirationDate || '' }))
       setScanMessage(found.suggestedExpirationDate
@@ -73,7 +76,7 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
         const form = new FormData()
         form.append('file', file)
         await api(`/ingredients/${saved.id}/image`, { method: 'POST', formData: form })
-      } else if (removeImage && ingredient?.imageUrl) {
+      } else if (removeImage && saved.imageUrl) {
         await api(`/ingredients/${saved.id}/image`, { method: 'DELETE' })
       }
       onSaved(ingredient ? '식재료를 수정했어요.' : '냉장고에 식재료를 추가했어요.')
@@ -81,13 +84,18 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
       onSaved(`식재료는 저장했지만 사진은 올리지 못했어요. ${failure.message} 내 냉장고에서 수정해 다시 올려 주세요.`)
     } finally { setBusy(false) }
   }
-  return <>
-    <Dialog title={ingredient ? '식재료 수정' : '식재료 추가'} onClose={onClose} busy={busy} className="ingredient-dialog">
-      <form onSubmit={submit}><div className="dialog-body stack">
+  return <Dialog title={scanning ? '바코드 스캔' : ingredient ? '식재료 수정' : '식재료 추가'} onClose={scanning ? () => setScanning(false) : onClose} busy={busy} className={scanning ? 'scanner-dialog' : 'ingredient-dialog'}>
+      {scanning ? <BarcodeScanner onDetected={detected} onClose={() => setScanning(false)} /> : <form onSubmit={submit}><div className="dialog-body stack">
         <p className="muted">재료를 고르면 기본 정보가 채워져요. 유통기한은 아는 경우에만 입력하세요.</p>
         {error && <ErrorBox error={error} />}
         {error?.status === 409 && <button type="button" className="button secondary" onClick={onReload}>최신 목록 다시 불러오기</button>}
         <div className="scan-row"><button type="button" className="button secondary small" disabled={busy} onClick={() => setScanning(true)}>📷 바코드로 입력</button>{scanMessage && <p className="helper" role="status">{scanMessage}</p>}</div>
+        {productLookup && <div className="barcode-product-result">
+          {productLookup.productImageUrl && <img src={productLookup.productImageUrl} alt={`${productLookup.name} 상품 포장`} referrerPolicy="no-referrer" onError={event => { event.currentTarget.hidden = true }} />}
+          <div><strong>{productLookup.name}</strong>{productLookup.brand && <p className="helper">{productLookup.brand}</p>}
+            {productLookup.productImageUrl && <p className="helper">사진: <a href={`https://world.openfoodfacts.org/product/${encodeURIComponent(productLookup.barcode)}`} target="_blank" rel="noreferrer">Open Food Facts</a> 제공 (CC BY-SA · 기여 데이터).</p>}
+          </div>
+        </div>}
         {!ingredient && pickerOpen && <section className="stack" aria-label="자주 쓰는 식재료">
           <label className="field">자주 쓰는 식재료 검색<input type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={80} placeholder="예: 계란, 달걀, 두부" disabled={busy} /></label>
           <label className="field">재료 분류<select value={group} onChange={event => setGroup(event.target.value)} disabled={busy}><option value="">전체 재료</option><SelectOptions values={categories} /></select></label>
@@ -101,7 +109,7 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
         <label className="field">유통기한 (선택)<input aria-label="유통기한" name="expirationDate" type="date" value={values.expirationDate} onChange={change} min={values.purchaseDate} disabled={busy} /></label>
         <p className="helper">비워 두면 ‘기한 미등록’으로 저장돼요. 기한을 추정하지 않으며 사용 전에 실제 상태를 확인해 주세요.</p>
         <section className="stack" aria-label="사진과 메모"><h3>사진과 메모</h3>
-          <ImageUploader currentUrl={ingredient?.imageUrl} file={file} removed={removeImage} onFile={setFile} onRemoved={setRemoveImage} disabled={busy} />
+          <ImageUploader currentUrl={ingredient?.imageUrl || (!ingredient ? productLookup?.productImageUrl : null)} file={file} removed={removeImage} onFile={setFile} onRemoved={setRemoveImage} disabled={busy} />
           <label className="field">메모 (선택)<textarea name="memo" value={values.memo} onChange={change} maxLength={500} rows={2} placeholder="예: 유기농, 개봉 후 3일 안에 먹기" disabled={busy} /></label>
         </section>
         <details open={expanded} onToggle={event => setExpanded(event.currentTarget.open)} className="ingredient-details"><summary>이름·수량·보관 위치 등 수정</summary><div className="form-grid">
@@ -113,8 +121,6 @@ export default function IngredientEditor({ ingredient, onClose, onSaved, onReloa
           <label className="field">구매 날짜<input name="purchaseDate" type="date" value={values.purchaseDate} max={todayInSeoul()} onChange={change} required disabled={busy} /></label>
           <label className="field">바코드 (선택)<input name="barcode" inputMode="numeric" pattern="\d{6,14}" title="숫자 6~14자리" value={values.barcode} onChange={change} maxLength={14} disabled={busy} /></label>
         </div></details>
-      </div><div className="dialog-actions"><button type="button" className="button secondary" onClick={onClose} disabled={busy}>취소</button><button className="button" disabled={busy || !values.name.trim()}>{busy ? '저장 중…' : ingredient ? '수정 저장' : '식재료 저장'}</button></div></form>
+      </div><div className="dialog-actions"><button type="button" className="button secondary" onClick={onClose} disabled={busy}>취소</button><button className="button" disabled={busy || !values.name.trim()}>{busy ? '저장 중…' : ingredient ? '수정 저장' : '식재료 저장'}</button></div></form>}
     </Dialog>
-    {scanning && <BarcodeScanner onDetected={detected} onClose={() => setScanning(false)} />}
-  </>
 }

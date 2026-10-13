@@ -263,7 +263,7 @@ test('소셜 로그인 버튼과 제공자 인증 시작 주소, 로그인 유�
     expect(response.status()).toBe(302)
     const location = response.headers().location
     expect(location.startsWith(host)).toBe(true)
-    expect(decodeURIComponent(location)).toContain(`redirect_uri=http://127.0.0.1:5173/login/oauth2/code/${provider}`)
+    expect(decodeURIComponent(location)).toContain(`redirect_uri=http://localhost:3000/auth/${provider}/callback`)
   }
   // 소셜 로그인 실패는 로그인 화면에 안내합니다. 그 밖의 잘못된 콜백 주소는 기본 화면으로 돌아옵니다.
   await page.goto('/login?error=oauth')

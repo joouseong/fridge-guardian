@@ -2,7 +2,7 @@
 import { chromium } from '@playwright/test'
 import fs from 'node:fs'
 
-const base = 'http://127.0.0.1:5173'
+const base = 'http://localhost:3000'
 const email = 'demo@example.test'
 const password = 'demo1234'
 const out = new URL('./shots/', import.meta.url)

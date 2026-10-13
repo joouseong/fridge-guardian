@@ -13,11 +13,11 @@
 ## 2. 인증 흐름 (Google/Kakao + JWT)
 
 ```text
-브라우저            프런트(5173)              Spring Boot                     Google/Kakao
+브라우저            프런트(3000)              Spring Boot                     Google/Kakao
   │ "Google로 계속하기" (a href=/oauth2/authorization/google)
   │──────────────────────────────▶│ (Vite 프록시) ──────────▶│ 302 → 제공자 인증 화면
   │◀────────────────────────────────────────────────────────────────────────────│
-  │ 동의 후 302 → /login/oauth2/code/google?code=…&state=…
+  │ 동의 후 302 → /auth/google/callback?code=…&state=…
   │──────────────────────────────▶│ ─────────────────────────▶│ code→token 교환, 사용자 정보 조회 ─▶
   │                               │        OAuth2SuccessHandler:
   │                               │         ① 제공자별 속성 정규화(OAuthProfileExtractor)
@@ -72,7 +72,7 @@
 
 ## 7. 배포 시 주의 (Vercel FE + AWS BE)
 
-- 지금 구조는 브라우저 기준 **같은 출처**(`/api`, `/oauth2`, `/login/oauth2`, `/uploads`가 프런트 도메인)를 전제합니다. Vercel에서는 `vercel.json`의 `rewrites`로 이 네 경로를 AWS 백엔드로 넘기면 CORS 없이 SameSite=Strict 쿠키가 동작합니다. (이 저장소에는 `vercel.json`을 넣지 않았습니다.)
+- 지금 구조는 브라우저 기준 **같은 출처**(`/api`, `/oauth2`, `/auth/{google|kakao}/callback`, `/uploads`가 프런트 도메인)를 전제합니다. Vercel에서는 `vercel.json`의 `rewrites`로 이 네 경로를 AWS 백엔드로 넘기면 CORS 없이 SameSite=Strict 쿠키가 동작합니다. (이 저장소에는 `vercel.json`을 넣지 않았습니다.)
 - 프런트와 백엔드를 서로 다른 도메인으로 직접 호출하면 Strict 쿠키가 전송되지 않아 로그인 유지가 깨집니다. 같은 상위 도메인으로 맞추거나 쿠키 정책을 다시 설계해야 합니다.
 - HTTPS 종단 뒤에서는 `COOKIE_SECURE=true`, `server.forward-headers-strategy=framework`(이미 설정)가 필요하고 Google/Kakao 콘솔의 Redirect URI를 실제 도메인으로 바꿉니다.
 - 업로드 사진은 로컬 폴더에 저장합니다. 서버 교체·다중 서버에서는 유실/불일치되므로 `ImageStorage`의 S3 구현으로 바꿔야 합니다(인터페이스만 준비됨).
@@ -83,6 +83,6 @@
 - 알레르기·비선호 필터는 재료 **이름** 기준이라 원재료의 모든 성분을 보장하지 않습니다.
 - Access Token은 서버 로그아웃 후에도 만료(최대 15분)까지 유효합니다(stateless JWT의 성질). Refresh는 즉시 폐기됩니다.
 - 쇼핑몰 검색 URL 형식은 쇼핑몰이 바꿀 수 있고, 제휴·딥링크는 지원하지 않습니다.
-- 바코드는 가공식품(식품안전나라 C005) 중심이며 표시 기한이 아닌 "기본 유통기간 + 오늘"의 **제안값**만 채웁니다.
+- 바코드는 식품안전나라 C005(키 설정 시)를 먼저 조회하고, 결과가 없으면 Open Food Facts에서 상품명·브랜드·정면 사진을 보완합니다. 식품안전나라에서 이름을 찾더라도 사진이 없으면 Open Food Facts에서 사진을 보완합니다. Open Food Facts 사진이 있는 바코드로 식재료를 추가하면 서버가 이미지를 로컬 업로드 저장소에 복사하고 출처 URL을 기록해 표시합니다. Open Food Facts는 사용자 기여 데이터라 누락·오류가 있을 수 있고, 유통기한은 임의로 계산하지 않습니다.
 - 프런트엔드는 기존 구조대로 JavaScript(JSX)와 자체 History 라우터를 씁니다(React Router·TypeScript 미도입).
 - 공통 레시피 즐겨찾기, 비밀번호 재설정, 가족 공유, 통계는 범위 밖입니다.

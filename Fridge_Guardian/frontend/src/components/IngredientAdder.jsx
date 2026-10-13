@@ -16,6 +16,9 @@ export default function IngredientAdder({ inventory = [], onClose, onSaved }) {
   const [notice, setNotice] = useState('')
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [receiptFile, setReceiptFile] = useState(null)
+  const [receiptPreview, setReceiptPreview] = useState('')
+  const [receiptRecognized, setReceiptRecognized] = useState(false)
   const saving = useRef(false)
   const attempt = useRef(null)
   const today = todayInSeoul()
@@ -48,6 +51,19 @@ export default function IngredientAdder({ inventory = [], onClose, onSaved }) {
   function custom() {
     if (addItems([ingredientDraft({ name: query.trim() }, today)])) { setView('review'); setQuery('') }
   }
+  async function scanReceipt() {
+    if (!receiptFile || busy) return
+    setBusy(true); setError(null); setNotice('영수증을 읽고 있어요…')
+    try {
+      const form = new FormData(); form.append('file', receiptFile)
+      const result = await api('/receipts/scan', { method: 'POST', formData: form })
+      const found = (result.items || []).filter(item => item.name?.trim()).map(item => ingredientDraft(item, today))
+      if (!found.length) { setError(new Error('영수증에서 식재료를 찾지 못했어요. 사진을 바꾸거나 목록 입력을 이용해 주세요.')); return }
+      addItems(found)
+      setReceiptRecognized(true)
+      setView('review'); setNotice(`${found.length}개 항목을 찾았어요. 수량과 이름을 확인한 뒤 저장해 주세요.`)
+    } catch (failure) { setError(failure) } finally { setBusy(false) }
+  }
   async function submit() {
     if (saving.current) return
     // Unprocessed text is kept visible; do not silently omit part of a shopping list.
@@ -71,7 +87,7 @@ export default function IngredientAdder({ inventory = [], onClose, onSaved }) {
     {error && <div className="batch-error"><ErrorBox error={error} /></div>}
     <div className="batch-layout">
       <section className="batch-picker" aria-label="재료 고르기">
-        <div className="batch-mode" role="group" aria-label="추가 방식"><button type="button" aria-pressed={mode === 'pick'} onClick={() => setMode('pick')} disabled={busy}>목록에서 고르기</button><button type="button" aria-pressed={mode === 'paste'} onClick={() => setMode('paste')} disabled={busy}>장본 목록 붙여넣기</button></div>
+        <div className="batch-mode" role="group" aria-label="추가 방식"><button type="button" aria-pressed={mode === 'pick'} onClick={() => setMode('pick')} disabled={busy}>목록에서 고르기</button><button type="button" aria-pressed={mode === 'paste'} onClick={() => setMode('paste')} disabled={busy}>장본 목록 붙여넣기</button><button type="button" aria-pressed={mode === 'receipt'} onClick={() => setMode('receipt')} disabled={busy}>영수증 사진</button></div>
         {mode === 'pick' ? <>
           <label className="field batch-search">재료 검색<input type="search" placeholder="계란, 달걀, 두부…" value={query} maxLength={80} onChange={event => { setQuery(event.target.value); setGroup('') }} disabled={busy} /></label>
           <div className="batch-filters" role="group" aria-label="재료 분류">{[['', '전체'], ...(owned.size ? [['owned', '내가 등록한 재료']] : []), ...Object.entries(categories)].map(([value, label]) => <button type="button" className={`chip ${group === value ? 'active' : ''}`} key={value} aria-pressed={group === value} disabled={busy} onClick={() => setGroup(value)}>{label}</button>)}</div>
@@ -79,7 +95,14 @@ export default function IngredientAdder({ inventory = [], onClose, onSaved }) {
           <div className="batch-catalog">{choices.map(item => <button type="button" className={`batch-tile ${selected.has(item.name) ? 'selected' : ''}`} aria-label={`${item.name} 선택`} aria-pressed={selected.has(item.name)} key={item.name} disabled={busy} onClick={() => toggle(item)}><span className="tile-check" aria-hidden="true">{selected.has(item.name) ? '✓' : '+'}</span><span className="tile-symbol" aria-hidden="true">{ingredientSymbol(item)}</span><strong>{item.name}</strong><small>{quantity(item.quantity, item.unit)}</small>{owned.has(item.name) && <span className="tile-owned">등록 이력 있음</span>}</button>)}</div>
           {!choices.length && <p className="helper">목록에 없으면 이름을 직접 입력해 추가할 수 있어요.</p>}
           <button type="button" className="button ghost small batch-custom" onClick={custom} disabled={busy || (query.trim() && selected.has(query.trim()))}>{query.trim() ? `‘${query.trim()}’ 직접 추가` : '＋ 목록에 없는 재료 직접 입력'}</button>
-        </> : <div className="stack batch-paste">
+        </> : mode === 'receipt' ? <div className="stack batch-paste batch-receipt">
+          <p className="batch-receipt-intro">영수증을 촬영하거나 사진을 선택하세요. 인식된 식재료는 저장 전에 검토할 수 있어요.</p>
+          <label className="field batch-receipt-upload"><span className="receipt-upload-icon" aria-hidden="true">🧾</span><span className="receipt-upload-copy"><strong>영수증 사진 선택</strong><small>JPG · PNG · WEBP</small></span><input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={busy} onChange={event => { const file = event.target.files?.[0]; setReceiptFile(file || null); setReceiptPreview(file ? URL.createObjectURL(file) : '') }} /></label>
+          {receiptPreview && <figure className="receipt-preview"><img src={receiptPreview} alt="선택한 영수증 미리보기" /><figcaption>선택한 영수증 미리보기</figcaption></figure>}
+          {notice && <p className="helper" role="status">{notice}</p>}
+          <button type="button" className="button batch-receipt-submit" disabled={busy || !receiptFile} onClick={scanReceipt}>{busy ? '영수증 읽는 중…' : '식재료 인식하기'}</button>
+          <p className="helper">이미지는 식재료를 읽는 동안에만 처리되며 저장하지 않아요. 인식 결과를 꼭 확인해 주세요.</p>
+        </div> : <div className="stack batch-paste">
           <label className="field">장본 재료 목록<textarea aria-label="장본 재료 목록" rows={7} value={text} maxLength={4000} disabled={busy} placeholder={'계란 6개, 두부 1모\n김치 500g\n우유 1L'} onChange={event => { setText(event.target.value); setIssues([]) }} /></label>
           <p className="helper">쉼표나 줄바꿈으로 구분해 주세요. 수량을 생략하면 목록의 기본 수량을 사용해요.</p>
           {issues.length > 0 && <div className="error-box" role="alert"><ul>{issues.map((issue, index) => <li key={index}>{issue}</li>)}</ul></div>}
@@ -88,7 +111,7 @@ export default function IngredientAdder({ inventory = [], onClose, onSaved }) {
       </section>
       <section className="batch-review" aria-label="선택한 재료">
         <div className="batch-review-title"><h3>담을 재료 <span>{drafts.length}</span></h3><span className="helper">최대 50개</span></div>
-        <p className="helper">표시된 수량을 확인해 주세요. 날짜를 몰라도 바로 저장할 수 있어요.</p>
+        <p className="helper">{receiptRecognized ? '보관 위치와 기한은 식품 종류에 따른 AI 추정값이에요. 냉동 기한은 품질 권장 기간이며 안전 만료일이 아니에요. 제품 포장 표시와 실제 보관 상태를 확인하고 필요하면 수정해 주세요.' : '표시된 수량을 확인해 주세요. 날짜를 몰라도 바로 저장할 수 있어요.'}</p>
         {!drafts.length && <div className="batch-empty"><span aria-hidden="true">🧺</span><p>냉장고에 있는 재료를 골라 보세요.</p><small>하나씩 저장할 필요 없이 모아서 추가해요.</small></div>}
         <div className="batch-rows">{drafts.map(item => <article className="batch-row" key={item.key} aria-label={`${item.name || '직접 입력'} 등록 정보`}>
           <div className="batch-row-heading"><label className="sr-only" htmlFor={`name-${item.key}`}>식재료명</label><input id={`name-${item.key}`} value={item.name} onChange={event => change(item.key, 'name', event.target.value)} maxLength={80} placeholder="식재료 이름" disabled={busy} /><button type="button" className="icon-button" aria-label={`${item.name || '직접 입력'} 선택 해제`} disabled={busy} onClick={() => setDrafts(current => current.filter(row => row.key !== item.key))}>×</button></div>

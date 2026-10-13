@@ -22,7 +22,7 @@ export default defineConfig({
     { name: 'mobile', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
   ],
   use: {
-    baseURL: process.env.APP_BASE_URL || 'http://127.0.0.1:5173',
+    baseURL: process.env.APP_BASE_URL || 'http://localhost:3000',
     headless: true,
     actionTimeout: 15_000,
     navigationTimeout: 20_000,

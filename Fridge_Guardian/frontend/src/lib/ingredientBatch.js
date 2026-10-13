@@ -7,7 +7,7 @@ const bareAmountPattern = /^(.*?)\s+([+-]?\d+(?:\.\d+)?)$/u
 
 export function ingredientDraft(item, today) {
   return { name: item.name, category: item.category || 'OTHER', quantity: item.quantity ?? 1,
-    unit: item.unit || 'PIECE', storageType: item.storageType || 'FRIDGE', purchaseDate: today, expirationDate: '' }
+    unit: item.unit || 'PIECE', storageType: item.storageType || 'FRIDGE', purchaseDate: item.purchaseDate || today, expirationDate: item.expirationDate || '' }
 }
 
 // Parse only explicit units and exact aliases. Typos are suggested for confirmation, never silently changed.

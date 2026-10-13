@@ -11,7 +11,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +98,41 @@ public class OpenAiClient implements com.fridgeguardian.ai.LlmClient {
 
     @Override public boolean available() { return !apiKey.isEmpty(); }
     @Override public String model() { return model; }
+
+    /** Reads purchased food rows from a receipt image without persisting the image. */
+    public String readReceipt(byte[] image, String mediaType, LocalDate purchaseDate) {
+        if (!available()) throw failure("AI_NOT_CONFIGURED", "AI 연결이 설정되지 않았어요. 설정을 확인해 주세요.");
+        try {
+            String dataUrl = "data:" + mediaType + ";base64," + Base64.getEncoder().encodeToString(image);
+            List<Map<String, Object>> content = List.of(
+                Map.of("type", "input_text", "text", "오늘(구매일)은 " + purchaseDate + "입니다. 영수증에서 실제 식재료로 구매한 항목만 추출하세요. 상품명, 수량, 단위를 읽으세요. 각 품목에 맞는 보관 위치(FRIDGE 냉장, FREEZER 냉동, PANTRY 실온)와 구매일 기준 권장 기한을 YYYY-MM-DD로 제안하세요. 냉장고 4°C 이하, 냉동고 -18°C 이하의 일반 가정 보관을 가정하세요. 포장에 적힌 날짜가 영수증에서 명확히 읽히는 경우 그 날짜를 우선하고, 그렇지 않으면 식품 종류의 일반적인 가정 보관 권장 기간을 추정하세요. 냉동 보관 날짜는 안전 만료일이 아니라 품질 권장 기간입니다. 모르면 짧고 보수적인 기한을 제안하세요. 어떤 날짜도 제품 표시 기한으로 단정하지 마세요. 가격, 할인, 합계, 비식품은 제외하세요. 수량이 불명확하면 1 PIECE로 하세요."),
+                Map.of("type", "input_image", "image_url", dataUrl));
+            Map<String, Object> body = new LinkedHashMap<>(Map.of("model", model,
+                "instructions", "영수증 이미지의 식재료 항목만 구조화합니다. 추측으로 없는 상품을 만들지 마세요.",
+                "input", List.of(Map.of("role", "user", "content", content)), "max_output_tokens", 3000, "store", false));
+            Map<String, Object> schema = Map.of("type", "object", "additionalProperties", false,
+                "properties", Map.of("items", Map.of("type", "array", "maxItems", 50, "items", Map.of(
+                    "type", "object", "additionalProperties", false,
+                    "properties", Map.of("name", Map.of("type", "string"), "quantity", Map.of("type", "number"),
+                        "unit", Map.of("type", "string", "enum", List.of("PIECE", "PACK", "BOTTLE", "BAG", "GRAM", "KILOGRAM", "MILLILITER", "LITER", "BLOCK", "BUNCH")),
+                        "category", Map.of("type", "string", "enum", List.of("VEGETABLE", "FRUIT", "MEAT", "SEAFOOD", "DAIRY", "GRAIN", "PROCESSED", "SEASONING", "OTHER")),
+                        "storageType", Map.of("type", "string", "enum", List.of("FRIDGE", "FREEZER", "PANTRY")),
+                        "expirationDate", Map.of("type", "string", "description", "Estimated date in YYYY-MM-DD format")),
+                    "required", List.of("name", "quantity", "unit", "category", "storageType", "expirationDate")))), "required", List.of("items"));
+            Map<String, Object> textConfig = new LinkedHashMap<>();
+            textConfig.put("format", Map.of("type", "json_schema", "name", "receipt_items", "strict", true, "schema", schema));
+            if (model.startsWith("gpt-5")) {
+                // Reasoning tokens count toward max_output_tokens; keep receipt parsing light and leave
+                // enough of the output budget for the structured item list.
+                body.put("reasoning", Map.of("effort", "low"));
+                textConfig.put("verbosity", "low");
+            }
+            body.put("text", textConfig);
+            return structuredText(send(body));
+        } catch (JacksonException error) {
+            throw failure("AI_INVALID_RESPONSE", "영수증을 읽지 못했어요. 사진을 확인하고 다시 시도해 주세요.");
+        }
+    }
 
     public Answer reply(ChatDtos.Request request, List<IngredientResponse> inventory,
                         List<RecipeRecommendation> recipes) {

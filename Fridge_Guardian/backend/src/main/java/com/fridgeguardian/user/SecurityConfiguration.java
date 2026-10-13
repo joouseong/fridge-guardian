@@ -68,11 +68,13 @@ public class SecurityConfiguration {
                     "/api/auth/refresh", "/api/auth/logout").permitAll()
                 // 식재료 사진은 <img>가 Authorization 헤더를 보낼 수 없어, 추측할 수 없는 파일명으로 공개 제공합니다.
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
-                .requestMatchers("/oauth2/**", "/login/oauth2/**", "/error").permitAll()
+                .requestMatchers("/oauth2/**", "/auth/*/callback", "/error").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll())
             .oauth2Login(login -> login.successHandler(success).failureHandler(failure)
-                .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(authorizationResolver)))
+                .authorizationEndpoint(endpoint -> endpoint.authorizationRequestResolver(authorizationResolver))
+                // freshfridge_capstone 앱에 등록된 Redirect URI(/auth/{google|kakao}/callback)와 맞춥니다.
+                .redirectionEndpoint(endpoint -> endpoint.baseUri("/auth/*/callback")))
             .oauth2ResourceServer(resource -> resource
                 .jwt(jwt -> { })
                 .authenticationEntryPoint(unauthorized).accessDeniedHandler(denied))

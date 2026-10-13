@@ -9,21 +9,31 @@
 
 /* 대시보드: 유통기한이 가까운 재료 카드 최대 6개 */
 .ingredient-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+.dashboard-nearest-panel { margin-bottom: 24px; }
 .ingredient-card { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 4px 14px; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
-.ingredient-card .ingredient-photo { grid-row: span 2; width: 76px; height: 76px; border-radius: 14px; background: var(--green-soft); object-fit: cover; }
+.ingredient-photo-wrap, .ingredient-thumb-wrap { position: relative; flex-shrink: 0; }
+.ingredient-card .ingredient-photo-wrap { grid-row: span 2; width: 76px; height: 76px; }
+.ingredient-card .ingredient-photo { width: 76px; height: 76px; border-radius: 14px; background: var(--green-soft); object-fit: cover; }
 .ingredient-card-body { min-width: 0; }
 .ingredient-card-body strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ingredient-card > .status-badge { grid-column: 2; justify-self: start; }
 
 /* 목록의 사진 썸네일 */
-.ingredient-thumb { flex-shrink: 0; width: 52px; height: 52px; border: 1px solid #e9ecdf; border-radius: 13px; background: var(--green-soft); object-fit: cover; }
+.ingredient-thumb { display: block; width: 52px; height: 52px; border: 1px solid #e9ecdf; border-radius: 13px; background: var(--green-soft); object-fit: cover; }
+.ingredient-image-attribution { position: absolute; right: 3px; bottom: 3px; padding: 1px 4px; border-radius: 5px; color: #fff; background: #24352dcc; font-size: 9px; line-height: 1.4; text-decoration: none; }
 .ingredient-memo { overflow-wrap: anywhere; }
 
 /* 사진 업로더 · 바코드 스캔 */
 .image-uploader { display: flex; align-items: flex-start; gap: 16px; }
-.image-uploader img { flex-shrink: 0; width: 96px; height: 96px; border: 1px solid var(--border); border-radius: 16px; background: var(--green-soft); object-fit: cover; }
+.image-uploader img { flex-shrink: 0; width: 96px; height: 96px; border: 1px solid var(--border); border-radius: 16px; background: var(--green-soft); object-fit: contain; }
 .image-uploader .button { width: fit-content; }
 .scan-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.barcode-product-result { display: flex; align-items: center; gap: 14px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: #fbfcf7; }
+.barcode-product-result > img { flex: 0 0 76px; width: 76px; height: 76px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); object-fit: contain; }
+.barcode-product-result > div { min-width: 0; }
+.barcode-product-result strong { display: block; overflow-wrap: anywhere; }
+.barcode-product-result .helper { margin-top: 3px; }
+.barcode-product-result a { color: var(--green); text-decoration: underline; text-underline-offset: 2px; }
 .scanner-region { width: 100%; min-height: 200px; overflow: hidden; border-radius: 14px; background: #1b3027; }
 .inline-form { display: flex; align-items: flex-end; gap: 10px; }
 .inline-form > .field { flex: 1; }

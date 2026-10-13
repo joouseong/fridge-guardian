@@ -50,7 +50,7 @@ const commands = {
   },
   help() {
     console.log(`명령 (npm run <명령> 또는 node scripts/dev.mjs <명령>)
-  dev           DB + 백엔드(8080) + 프런트(5173)를 한 번에 실행
+  dev           DB + 백엔드(8080) + 프런트(3000)를 한 번에 실행
   db / db-stop  프로젝트 MySQL(3307) 시작 / 종료 (데이터 보존)
   backend       백엔드만 실행    frontend  프런트만 실행
   verify        전체 검증 (백엔드 테스트 + 프런트 test/lint/build)

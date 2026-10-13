@@ -15,7 +15,7 @@
 | 3.1 JWT 인증, 비로그인 접근 제한·로그인 이동 | ✅ Access 15분(메모) + Refresh 14일(HttpOnly 쿠키, 회전·재사용 감지) | `user/token/*`, `services/api.js` |
 | 3.2 식재료 CRUD, 카테고리·단위·보관 위치 | ✅ | `ingredient/*`, `IngredientEditor.jsx` |
 | 3.2 이미지(5MB, 기본 이미지, 교체 유지, 삭제 시 파일 삭제) | ✅ | `ingredient/image/*`, `ImageUploader.jsx` |
-| 3.2 바코드 스캔 자동 등록 (`html5-qrcode`) | ✅ 스캔·조회·자동 입력. **품목·유통기간 데이터는 식품안전나라 API 키가 있어야 조회됨** | `ingredient/barcode/*`, `BarcodeScanner.jsx` |
+| 3.2 바코드 스캔 자동 등록 (`html5-qrcode`) | ✅ 스캔·상품명 자동 입력. 식품안전나라 우선 조회 후 Open Food Facts 보완(상품명·브랜드·사진), 등록 시 사진 자동 저장 | `ingredient/barcode/*`, `BarcodeScanner.jsx` |
 | 3.3 D-Day(D-5, D-0, D+2)·임박/여유/만료 배지·임박순 정렬 | ✅ | `ExpiryBadge`, `ExpiryStatus` |
 | 3.3 Scheduler + Batch 자정 처리, 알림 큐 | ✅ (D-Day는 저장하지 않고 계산 — 아래 설계 결정 참고) | `batch/*`, `notification/*` |
 | 3.4 대시보드(요약 + 가장 가까운 6개 카드) | ✅ | `DashboardPage.jsx` |
@@ -74,7 +74,7 @@ Fridge_Guardian/
 | Node.js | `brew install node` | `winget install OpenJS.NodeJS.LTS` |
 
 ```bash
-npm run dev        # DB(3307) + 백엔드(8080) + 프런트(5173)를 한 번에. Ctrl+C로 백엔드·프런트 종료 → http://127.0.0.1:5173
+npm run dev        # DB(3307) + 백엔드(8080) + 프런트(3000)를 한 번에. Ctrl+C로 백엔드·프런트 종료 → http://localhost:3000
 npm run db:stop    # 프로젝트 MySQL 종료 (데이터 보존)
 ```
 
@@ -90,10 +90,10 @@ npm run db:stop    # 프로젝트 MySQL 종료 (데이터 보존)
 
 | 기능 | 설정 | 안 하면 |
 | --- | --- | --- |
-| Google | 콘솔에서 OAuth 클라이언트 생성 → Redirect URI `http://127.0.0.1:5173/login/oauth2/code/google` → `GOOGLE_CLIENT_ID/SECRET` | 로그인 화면에 버튼이 보이지 않음 |
-| Kakao | 카카오 로그인 활성화, Redirect URI `http://127.0.0.1:5173/login/oauth2/code/kakao`, 동의 항목(닉네임·이메일) → `KAKAO_CLIENT_ID/SECRET` | 위와 같음. 이메일 동의가 없으면 이메일 없이 가입됨 |
+| Google | 콘솔에서 OAuth 클라이언트 생성 → Redirect URI `http://localhost:3000/auth/google/callback` → `GOOGLE_CLIENT_ID/SECRET` | 로그인 화면에 버튼이 보이지 않음 |
+| Kakao | 카카오 로그인 활성화, Redirect URI `http://localhost:3000/auth/kakao/callback`, 동의 항목(닉네임·이메일) → `KAKAO_CLIENT_ID/SECRET` | 위와 같음. 이메일 동의가 없으면 이메일 없이 가입됨 |
 | AI | `OPENAI_API_KEY` (`npm run setup:openai`로 화면에 표시하지 않고 저장 가능) | AI 레시피는 503 `AI_NOT_CONFIGURED` 안내, 채팅은 기본 추천 |
-| 바코드 | `FOODSAFETY_API_KEY`(식품안전나라 OpenAPI) | 저장된 결과만 조회, 없으면 직접 입력 안내 |
+| 바코드 | 선택: `FOODSAFETY_API_KEY`(식품안전나라 OpenAPI). 키가 없어도 Open Food Facts를 조회 | 상품 정보가 두 데이터베이스에 없으면 직접 입력 안내. Open Food Facts 정보는 사용자 기여 자료라 한국 상품이 빠지거나 부정확할 수 있음 |
 | 운영 JWT | `JWT_SECRET`(Base64 32바이트 이상) | 재시작 때마다 임시 키 → 모두 로그아웃 |
 
 키는 서버에서만 읽고 `VITE_*` 변수나 저장소에 넣지 마세요.

@@ -8,7 +8,7 @@ spring:
     hibernate:
       ddl-auto: validate
 app:
-  frontend-url: http://127.0.0.1:5173
+  frontend-url: http://localhost:3000
   jwt:
     # 테스트 전용 키(Base64, 32바이트). 운영 키가 아닙니다.
     secret: dGVzdC1vbmx5LWp3dC1zZWNyZXQta2V5LTMyLWJ5dGVzISE=

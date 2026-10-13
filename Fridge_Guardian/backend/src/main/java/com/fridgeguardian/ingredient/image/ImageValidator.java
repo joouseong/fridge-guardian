@@ -25,6 +25,14 @@ public class ImageValidator {
         return new Validated(content, extension);
     }
 
+    public Validated validate(byte[] content) {
+        if (content == null || content.length == 0) throw invalid("이미지 파일이 비어 있어요.");
+        if (content.length > MAX_BYTES) throw tooLarge();
+        String extension = detect(content);
+        if (extension == null) throw invalid("JPG, PNG, WEBP 이미지만 저장할 수 있어요.");
+        return new Validated(content, extension);
+    }
+
     static String detect(byte[] b) {
         if (b.length >= 3 && (b[0] & 0xFF) == 0xFF && (b[1] & 0xFF) == 0xD8 && (b[2] & 0xFF) == 0xFF) return "jpg";
         if (b.length >= 8 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G'

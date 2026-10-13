@@ -106,7 +106,7 @@ class SocialLoginTest {
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
         // 성공 후 프론트엔드로만 이동하고 주소에 토큰이 없습니다. OAuth 핸드셰이크용 세션은 폐기됩니다.
-        assertThat(response.getRedirectedUrl()).isEqualTo("http://127.0.0.1:5173/oauth/callback");
+        assertThat(response.getRedirectedUrl()).isEqualTo("http://localhost:3000/oauth/callback");
         assertThat(session.isInvalid()).isTrue();
         String header = response.getHeader("Set-Cookie");
         assertThat(header).contains("refresh_token=", "HttpOnly", "SameSite=Strict", "Path=/api/auth");
@@ -125,20 +125,20 @@ class SocialLoginTest {
         mvc.perform(get("/oauth2/authorization/google")).andExpect(status().is3xxRedirection())
             .andExpect(header().string("Location", org.hamcrest.Matchers.startsWith("https://accounts.google.com/o/oauth2/v2/auth?")))
             .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("scope=openid%20profile%20email")))
-            .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("redirect_uri=http://localhost/login/oauth2/code/google")));
+            .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("redirect_uri=http://localhost/auth/google/callback")));
         mvc.perform(get("/oauth2/authorization/kakao")).andExpect(status().is3xxRedirection())
             .andExpect(header().string("Location", org.hamcrest.Matchers.startsWith("https://kauth.kakao.com/oauth/authorize?")))
             .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("scope=profile_nickname%20account_email")))
-            .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("redirect_uri=http://localhost/login/oauth2/code/kakao")));
+            .andExpect(header().string("Location", org.hamcrest.Matchers.containsString("redirect_uri=http://localhost/auth/kakao/callback")));
         // 등록하지 않은 제공자는 인증을 시작하지 않습니다.
         mvc.perform(get("/oauth2/authorization/github")).andExpect(status().is4xxClientError());
     }
 
     @Test void failedProviderLoginReturnsToTheLoginPageWithoutLeakingDetails() throws Exception {
         // 인증 코드가 잘못된 콜백은 실패 핸들러가 프론트엔드 로그인 화면으로 돌려보냅니다.
-        var result = mvc.perform(get("/login/oauth2/code/google").param("code", "bad").param("state", "bad")).andReturn();
+        var result = mvc.perform(get("/auth/google/callback").param("code", "bad").param("state", "bad")).andReturn();
         assertThat(result.getResponse().getStatus()).isEqualTo(302);
-        assertThat(result.getResponse().getRedirectedUrl()).isEqualTo("http://127.0.0.1:5173/login?error=oauth");
+        assertThat(result.getResponse().getRedirectedUrl()).isEqualTo("http://localhost:3000/login?error=oauth");
         assertThat(result.getResponse().getCookie("refresh_token")).isNull();
     }
 }

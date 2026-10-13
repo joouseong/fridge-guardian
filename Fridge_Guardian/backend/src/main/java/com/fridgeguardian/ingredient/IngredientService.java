@@ -92,10 +92,22 @@ public class IngredientService {
     public IngredientResponse replaceImage(Long userId, Long id, MultipartFile file) {
         Ingredient ingredient = owned(userId, id);
         var image = imageValidator.validate(file);
-        String stored = images.save(image.content(), image.extension());
+        return replaceImage(ingredient, image.content(), image.extension(), null);
+    }
+
+    @Transactional
+    public IngredientResponse replaceImageFromBarcode(Long userId, Long id, byte[] content, String attributionUrl) {
+        Ingredient ingredient = owned(userId, id);
+        var image = imageValidator.validate(content);
+        return replaceImage(ingredient, image.content(), image.extension(), attributionUrl);
+    }
+
+    private IngredientResponse replaceImage(Ingredient ingredient, byte[] content, String extension, String attributionUrl) {
+        String stored = images.save(content, extension);
         onRollback(() -> images.delete(stored));
         String previous = ingredient.getImagePath();
         ingredient.setImagePath(stored);
+        ingredient.setImageAttributionUrl(attributionUrl);
         ingredients.flush();
         if (previous != null) afterCommit(() -> images.delete(previous));
         return IngredientResponse.from(ingredient, LocalDate.now(clock));
@@ -107,6 +119,7 @@ public class IngredientService {
         Ingredient ingredient = owned(userId, id);
         String previous = ingredient.getImagePath();
         ingredient.setImagePath(null);
+        ingredient.setImageAttributionUrl(null);
         ingredients.flush();
         if (previous != null) afterCommit(() -> images.delete(previous));
         return IngredientResponse.from(ingredient, LocalDate.now(clock));

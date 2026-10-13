@@ -27,7 +27,7 @@
 | PUT | /auth/me | `{nickname, currentPassword?, newPassword?, newPasswordConfirm?}`. 닉네임은 항상 저장. 비밀번호 세 칸 중 하나라도 있으면 현재 비밀번호 확인 후 변경(소셜 전용 계정은 400) |
 | GET | /auth/providers | → `{google,kakao}` 키가 설정된 소셜 로그인만 true (인증 불필요) |
 | GET | /oauth2/authorization/{google\|kakao} | 제공자 인증 화면으로 302. 등록되지 않은 제공자는 404 |
-| GET | /login/oauth2/code/{id} | 제공자 콜백(브라우저 이동). 성공 → `FRONTEND_URL/oauth/callback`, 실패 → `FRONTEND_URL/login?error=oauth` |
+| GET | /auth/{id}/callback | 제공자 콜백(브라우저 이동). 성공 → `FRONTEND_URL/oauth/callback`, 실패 → `FRONTEND_URL/login?error=oauth` |
 | GET/PUT | /users/me/preferences | `{spicyLevel(0~3), allergies[], dislikes[]}`. PUT은 목록 전체 교체(각 30개·80자 이하). 기본값은 매운맛 3(제한 없음) |
 
 ## 식재료
@@ -41,11 +41,13 @@
 | POST | /ingredients/{id}/image | `multipart` 필드 `file`(JPG·PNG·WEBP, **5MB 이하**, 내용의 매직 바이트로 판별) → 식재료. 기존 사진은 교체·삭제. 실패 시 400 `INVALID_IMAGE` / 413 `IMAGE_TOO_LARGE` |
 | DELETE | /ingredients/{id}/image | 사진 삭제(기본 이미지로) → 식재료 |
 | GET | /uploads/{uuid}.{jpg\|png\|webp} | 업로드한 사진(로그인 불필요, 추측할 수 없는 파일명) |
-| GET | /barcodes/{code} | 숫자 6~14자리 → `{barcode,name,category,shelfLifeDays,suggestedExpirationDate,source}`. 저장된 결과 → 식품안전나라 API 순. 없으면 404 |
+| GET | /barcodes/{code} | 숫자 6~14자리 → `{barcode,name,category,brand,productImageUrl,shelfLifeDays,suggestedExpirationDate,source}`. 캐시 → 식품안전나라 C005(키 설정 시), Open Food Facts는 이름 조회 실패 시 대체하고 사진 누락 시 보완. 없으면 404 |
+
+Open Food Facts 조회에는 키가 필요하지 않습니다. 식품안전나라에서 상품명을 찾았더라도 사진이 없으면 Open Food Facts에서 브랜드·정면 사진 URL을 보완합니다. Open Food Facts만으로 조회된 경우 유통기간을 제공하지 않아 `shelfLifeDays`와 `suggestedExpirationDate`는 `null`입니다. 식재료 추가 시 사진은 로컬 저장소로 복사하고 출처 링크를 기록합니다. 데이터는 사용자 기여 자료라 누락·오류가 있을 수 있으므로 제품 표시와 대조해야 합니다.
 | GET | /dashboard | `{total,safeCount,soonCount,expiredCount,unknownCount,todayCount,expiringIngredients,expiredIngredients,nearestIngredients(최대 6),today}` |
 
 식재료 요청: `name,category,quantity,unit,purchaseDate,expirationDate,storageType,version(수정 시),memo(500자),barcode(숫자 6~14)`.
-응답에는 `id,version,status,daysUntilExpiration,imageUrl,memo,barcode`가 더해집니다. 날짜는 `YYYY-MM-DD`입니다.
+응답에는 `id,version,status,daysUntilExpiration,imageUrl,imageAttributionUrl,memo,barcode`가 더해집니다. 날짜는 `YYYY-MM-DD`입니다. 바코드로 추가할 때 캐시된 Open Food Facts 상품 사진이 있으면 서버에 복사해 식재료 사진으로 저장하고, 응답에 출처 URL을 포함합니다. 가져오기에 실패하면 식재료는 사진 없이 저장됩니다. 직접 업로드한 사진은 자동 가져온 사진을 대체하며 출처 표시는 지워집니다.
 
 - 카테고리: VEGETABLE 채소 · FRUIT 과일 · MEAT 육류 · SEAFOOD 수산물 · DAIRY 유제품 · GRAIN 곡류 · PROCESSED 가공식품 · SEASONING 조미료 · OTHER 기타
 - 단위: PIECE 개 · PACK 팩 · BOTTLE 병 · BAG 봉 · GRAM g · KILOGRAM kg · MILLILITER ml · LITER L · BLOCK 모 · BUNCH 단

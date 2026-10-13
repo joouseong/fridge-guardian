@@ -20,6 +20,7 @@ public class Ingredient {
     @Enumerated(EnumType.STRING) @Column(nullable=false, length=20) private StorageType storageType;
     // 서버가 만든 파일 이름만 저장합니다. 사진 교체가 목록 화면의 수정 버전을 무효로 만들지 않도록 잠금에서 제외합니다.
     @OptimisticLock(excluded=true) @Column(length=255) private String imagePath;
+    @OptimisticLock(excluded=true) @Column(length=500) private String imageAttributionUrl;
     @Column(length=500) private String memo;
     @Column(length=20) private String barcode;
     @Version private long version;
@@ -42,6 +43,7 @@ public class Ingredient {
         this.memo=memo; this.barcode=barcode;
     }
     public void setImagePath(String imagePath) { this.imagePath=imagePath; }
+    public void setImageAttributionUrl(String imageAttributionUrl) { this.imageAttributionUrl=imageAttributionUrl; }
     public Long getId() { return id; }
     public UserAccount getUser() { return user; }
     public String getName() { return name; }
@@ -52,6 +54,7 @@ public class Ingredient {
     public LocalDate getExpirationDate() { return expirationDate; }
     public StorageType getStorageType() { return storageType; }
     public String getImagePath() { return imagePath; }
+    public String getImageAttributionUrl() { return imageAttributionUrl; }
     public String getMemo() { return memo; }
     public String getBarcode() { return barcode; }
     public long getVersion() { return version; }

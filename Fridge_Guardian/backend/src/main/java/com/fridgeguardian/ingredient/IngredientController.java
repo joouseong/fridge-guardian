@@ -1,8 +1,11 @@
 package com.fridgeguardian.ingredient;
 
+import com.fridgeguardian.ingredient.barcode.OpenFoodFactsImageImporter;
 import com.fridgeguardian.user.CurrentUser;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -12,11 +15,15 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/ingredients")
 public class IngredientController {
+    private static final Logger log = LoggerFactory.getLogger(IngredientController.class);
     private final IngredientService ingredients;
     private final IngredientBatchService batches;
-    public IngredientController(IngredientService ingredients, IngredientBatchService batches) {
+    private final OpenFoodFactsImageImporter barcodeImages;
+    public IngredientController(IngredientService ingredients, IngredientBatchService batches,
+                                OpenFoodFactsImageImporter barcodeImages) {
         this.ingredients = ingredients;
         this.batches = batches;
+        this.barcodeImages = barcodeImages;
     }
 
     /** 이름 검색(q)·카테고리·보관 위치·상태 필터를 모두 선택적으로 조합할 수 있습니다. */
@@ -37,7 +44,21 @@ public class IngredientController {
 
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
     public IngredientResponse create(Authentication authentication, @Valid @RequestBody IngredientRequest request) {
-        return ingredients.create(CurrentUser.id(authentication), request);
+        Long userId = CurrentUser.id(authentication);
+        IngredientResponse created = ingredients.create(userId, request);
+        try {
+            return barcodeImages.importForBarcode(request.barcodeOrNull()).map(image -> {
+                try {
+                    return ingredients.replaceImageFromBarcode(userId, created.id(), image.content(), image.attributionUrl());
+                } catch (RuntimeException error) {
+                    log.info("Open Food Facts image could not be saved for ingredient {}", created.id());
+                    return created;
+                }
+            }).orElse(created);
+        } catch (RuntimeException error) {
+            log.info("Open Food Facts image import skipped for ingredient {}", created.id());
+            return created;
+        }
     }
 
     @PutMapping("/{id}")

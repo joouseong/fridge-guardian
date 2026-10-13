@@ -108,7 +108,7 @@ class AuthIngredientIntegrationTest {
             .andExpect(status().isForbidden());
         mvc.perform(post("/api/auth/logout").cookie(cookie).header("Origin", "https://evil.example"))
             .andExpect(status().isForbidden());
-        mvc.perform(post("/api/auth/refresh").cookie(cookie).header("Origin", "http://127.0.0.1:5173"))
+        mvc.perform(post("/api/auth/refresh").cookie(cookie).header("Origin", "http://localhost:3000"))
             .andExpect(status().isOk());
     }
 
