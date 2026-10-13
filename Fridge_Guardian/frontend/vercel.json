@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:match*",
-      "destination": "https://실제-백엔드-서버-주소/api/:match*"
+      "destination": "https://fridge-guardian.onrender.com*"
     },
     {
       "source": "/((?!api/).*)",
