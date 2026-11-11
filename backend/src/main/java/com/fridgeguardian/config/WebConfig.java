@@ -23,4 +23,16 @@ public class WebConfig implements WebMvcConfigurer {
             .addResourceLocations(location)
             .setCacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePublic().immutable());
     }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+        .allowedOrigins(
+            "https://fridge-guardian.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173")
+        .allowedMethods("GET", "POST", "PUT", "DELETE")
+        .allowedHeaders("*")
+        .allowCredentials(true);
+    }
 }

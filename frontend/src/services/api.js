@@ -4,6 +4,9 @@
 let accessToken = null
 let refreshRequest = null
 
+// Vercel 환경 변수(VITE_API_URL)를 가져오고, 없으면 로컬 개발 환경 주소를 사용합니다.
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+
 export class ApiError extends Error {
   constructor(status, body = {}) {
     super(body?.message || '요청을 처리하지 못했어요. 잠시 후 다시 시도해 주세요.')
@@ -36,7 +39,7 @@ export function hasAccessToken() { return accessToken !== null }
  */
 export function refreshSession() {
   if (!refreshRequest) {
-    refreshRequest = fetchResponse('/api/auth/refresh', { method: 'POST', headers: { Accept: 'application/json' }, credentials: 'include' })
+    refreshRequest = fetchResponse(`${API_BASE_URL}/api/auth/refresh`, { method: 'POST', headers: { Accept: 'application/json' }, credentials: 'include' })
       .then(async (response) => {
         const body = await response.json().catch(() => null)
         if (!response.ok) throw new ApiError(response.status, body || {})
@@ -74,7 +77,8 @@ export async function api(path, options = {}) {
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`
   // JSON일 때만 Content-Type을 지정합니다. FormData는 브라우저가 boundary를 포함해 직접 지정합니다.
   if (body !== undefined && !formData) headers['Content-Type'] = 'application/json'
-  const response = await fetchResponse(`/api${path}`, {
+  
+  const response = await fetchResponse(`${API_BASE_URL}/api${path}`, {
     method, headers, credentials: 'include', signal,
     ...(formData ? { body: formData } : body !== undefined ? { body: JSON.stringify(body) } : {}),
   })
