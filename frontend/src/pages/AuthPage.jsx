@@ -2,7 +2,7 @@ import { useState } from 'react'
 import BrandMark from '../components/BrandMark.jsx'
 import { ErrorBox, Link } from '../components/UI.jsx'
 import useResource from '../hooks/useResource.js'
-import { api, login } from '../services/api.js'
+import { api, login, API_BASE_URL } from '../services/api.js'
 
 const providers = [
   { key: 'google', label: 'Google로 계속하기', className: 'google', mark: 'G' },
@@ -18,7 +18,7 @@ function SocialLogin() {
   return <div className="social-login">
     <div className="divider"><span>또는</span></div>
     {providers.map((provider) => data?.[provider.key]
-      ? <a key={provider.key} className={`button social-button ${provider.className}`} href={`/oauth2/authorization/${provider.key}`}><span aria-hidden="true">{provider.mark}</span>{provider.label}</a>
+      ? <a key={provider.key} className={`button social-button ${provider.className}`} href={`${API_BASE_URL}/oauth2/authorization/${provider.key}`}><span aria-hidden="true">{provider.mark}</span>{provider.label}</a>
       : <button key={provider.key} type="button" className={`button social-button ${provider.className}`} disabled title="서버에 로그인 키가 설정되지 않았어요"><span aria-hidden="true">{provider.mark}</span>{provider.label}<small>준비 중</small></button>)}
   </div>
 }
