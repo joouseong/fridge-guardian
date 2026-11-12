@@ -5,7 +5,7 @@ let accessToken = null
 let refreshRequest = null
 
 // Vercel 환경 변수(VITE_API_URL)를 가져오고, 없으면 로컬 개발 환경 주소를 사용합니다.
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://fridge-guardian.onrender.com'
+export const API_BASE_URL = ''
 
 export class ApiError extends Error {
   constructor(status, body = {}) {
