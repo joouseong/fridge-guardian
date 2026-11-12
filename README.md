@@ -29,7 +29,7 @@
 | 3.5 개인화(비선호·알레르기·매운맛) 자동 필터 | ✅ | `user/preference/*`, `ProfilePage.jsx` |
 | 3.5 샘플 레시피 8종 | ✅ PRD 8종 + 기존 13종 = 21종 | `V2`, `V7` |
 | 기술: Redis 캐시 | ✅ 공통 레시피·AI 결과. 기본은 메모리(Caffeine), `CACHE_TYPE=redis`로 전환 | `config/CacheConfig` |
-| 배포: Vercel(FE) + 백엔드 컨테이너 | ⏳ 설정 파일은 있음(`frontend/vercel.json`, `backend/dockerfile`). 실제 배포 결과는 이 문서에서 확인하지 않았고, 주의점은 [docs/DESIGN.md](docs/DESIGN.md) §7 | `frontend/vercel.json`, `backend/dockerfile` |
+| 배포: Vercel(FE) + 백엔드 컨테이너 | ⏳ Vercel Node 중계 함수 + 설정 파일이 있음(`frontend/api/[...path].js`, `frontend/vercel.json`, `backend/dockerfile`). 실제 배포 결과는 이 문서에서 확인하지 않았고, 주의점은 [docs/DESIGN.md](docs/DESIGN.md) §7 | `frontend/api/[...path].js`, `frontend/vercel.json`, `backend/dockerfile` |
 
 ## 설계 결정 (PRD와 다르거나 판단한 부분)
 

@@ -72,7 +72,7 @@
 
 ## 7. 배포 시 주의 (Vercel FE + 백엔드 컨테이너)
 
-- 지금 구조는 브라우저 기준 **같은 출처**(`/api`, `/oauth2`, `/auth/{google|kakao}/callback`, `/uploads`가 프런트 도메인)를 전제합니다. Vercel에서는 `vercel.json`의 `rewrites`로 이 경로들을 백엔드로 넘기면 CORS 없이 SameSite=Strict 쿠키가 동작합니다. 저장소의 `frontend/vercel.json`은 현재 `/api`만 Render 백엔드로 넘기고 나머지는 `index.html`로 보냅니다. 소셜 로그인(`/oauth2`, `/auth/{google|kakao}/callback`)과 `/uploads`도 같은 방식으로 넘겨야 하는지 배포 때 확인하세요. 백엔드는 `backend/dockerfile`(Maven 빌드 → JRE 21)로 컨테이너 배포합니다.
+- 지금 구조는 브라우저 기준 **같은 출처**(`/api`, `/oauth2`, `/auth/{google|kakao}/callback`, `/uploads`가 프런트 도메인)를 전제합니다. Vercel에서는 `frontend/api/[...path].js` Node 중계 함수가 `/api`를 Render 백엔드로 전달하고, `vercel.json`이 OAuth 시작·콜백과 업로드 경로를 이 함수로 내부 전달합니다. 외부 rewrite DNS에 의존하지 않으므로 CORS 없이 SameSite=Strict 쿠키가 동작합니다. 함수의 `BACKEND_URL`은 Render의 원본 주소이며, 없으면 현재 서비스 주소를 기본값으로 씁니다. 백엔드는 `backend/dockerfile`(Maven 빌드 → JRE 21)로 컨테이너 배포합니다.
 - 프런트와 백엔드를 서로 다른 도메인으로 직접 호출하면 Strict 쿠키가 전송되지 않아 로그인 유지가 깨집니다. 같은 상위 도메인으로 맞추거나 쿠키 정책을 다시 설계해야 합니다.
 - HTTPS 종단 뒤에서는 `COOKIE_SECURE=true`, `server.forward-headers-strategy=framework`(이미 설정)가 필요하고 Google/Kakao 콘솔의 Redirect URI를 실제 도메인으로 바꿉니다.
 - 업로드 사진은 로컬 폴더에 저장합니다. 서버 교체·다중 서버에서는 유실/불일치되므로 `ImageStorage`의 S3 구현으로 바꿔야 합니다(인터페이스만 준비됨).

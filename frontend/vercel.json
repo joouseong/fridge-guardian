@@ -1,11 +1,19 @@
 {
   "rewrites": [
     {
-      "source": "/api/:match*",
-      "destination": "https://fridge-guardian.onrender.com/api/:match*"
+      "source": "/oauth2/:match*",
+      "destination": "/api/oauth2/:match*"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/auth/:provider/callback",
+      "destination": "/api/oauth-callback/:provider"
+    },
+    {
+      "source": "/uploads/:match*",
+      "destination": "/api/uploads/:match*"
+    },
+    {
+      "source": "/((?!api/|oauth2/|auth/|uploads/).*)",
       "destination": "/index.html"
     }
   ]
