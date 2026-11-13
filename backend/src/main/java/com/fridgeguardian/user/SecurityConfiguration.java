@@ -63,7 +63,7 @@ public class SecurityConfiguration {
             .requestCache(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll())
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/health", "/api/auth/providers", "/auth/providers").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login",
                     "/api/auth/refresh", "/api/auth/logout").permitAll()

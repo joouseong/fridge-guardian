@@ -26,11 +26,6 @@ public class AuthController {
                           @Value("${spring.security.oauth2.client.registration.google.client-id:not-configured}") String googleId,
                           @Value("${spring.security.oauth2.client.registration.kakao.client-id:not-configured}") String kakaoId) {
         this.auth = auth; this.refreshTokens = refreshTokens; this.cookies = cookies; this.originGuard = originGuard;
-        
-        // 디버깅용 출력
-        System.out.println("=== [DEBUG] Google Client ID loaded: " + googleId + " ===");
-        System.out.println("=== [DEBUG] Kakao Client ID loaded: " + kakaoId + " ===");
-        
         this.googleEnabled = configured(googleId);
         this.kakaoEnabled = configured(kakaoId);
     }
