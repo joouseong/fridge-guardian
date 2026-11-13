@@ -1,16 +1,20 @@
 {
   "rewrites": [
     {
-      "source": "/oauth2/:match*",
-      "destination": "/api/oauth2/:match*"
+      "source": "/api/:path*",
+      "destination": "https://fridge-guardian.onrender.com/api/:path*"
     },
     {
-      "source": "/auth/:provider/callback",
-      "destination": "/api/oauth-callback/:provider"
+      "source": "/oauth2/:path*",
+      "destination": "https://fridge-guardian.onrender.com/oauth2/:path*"
     },
     {
-      "source": "/uploads/:match*",
-      "destination": "/api/uploads/:match*"
+      "source": "/auth/:path*",
+      "destination": "https://fridge-guardian.onrender.com/auth/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://fridge-guardian.onrender.com/uploads/:path*"
     },
     {
       "source": "/((?!api/|oauth2/|auth/|uploads/).*)",
